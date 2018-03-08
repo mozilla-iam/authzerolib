@@ -2,12 +2,9 @@ language: python
 python:
     - 3.6
 before_install:
-    - pip install flake8
-    - pip install tox
-    - flake8 .
+    - make install_test_requirements
+    - make test
 install:
-    - pip install -r requirements.txt
-    - python setup.py build
-    - python setup.py install
+    - make install
 script:
     - tox
