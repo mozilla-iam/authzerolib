@@ -11,9 +11,9 @@ import json
 import logging
 import time
 
+
 class DotDict(dict):
     """return a dict.item notation for dict()'s"""
-
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
@@ -23,6 +23,7 @@ class DotDict(dict):
             if hasattr(value, 'keys'):
                 value = DotDict(value)
             self[key] = value
+
 
 class AuthZeroRule(object):
     """Lightweight Rule Object"""
@@ -35,9 +36,9 @@ class AuthZeroRule(object):
         self.stage = 'login_success'
 
     def validate(self):
-        if self.script == None:
+        if self.script is None:
             raise Exception('RuleValidationError', ('script cannot be None'))
-        if self.name == None:
+        if self.name is None:
             raise Exception('RuleValidationError', ('name cannot be None'))
         if self.order <= 0:
             raise Exception('RuleValidationError', ('order must be greater than 0'))
@@ -47,12 +48,13 @@ class AuthZeroRule(object):
         tmp = {'id': self.id, 'enabled': self.enabled, 'script': self.script,
                'name': self.name, 'order': self.order, 'stage': self.stage}
         # Remove id if we don't have one. It means it's a new rule.
-        if tmp.get('id') == None:
+        if tmp.get('id') is None:
             tmp.pop('id')
         return json.dumps(tmp)
 
     def __str__(self):
         return self.json().__str__()
+
 
 class AuthZero(object):
     def __init__(self, config):
@@ -76,8 +78,6 @@ class AuthZero(object):
         self.conn.close()
 
     def get_rules(self):
-        payload = DotDict(dict())
-        payload_json = json.dumps(payload)
         return self._request("/api/v2/rules")
 
     def delete_rule(self, rule_id):
@@ -146,11 +146,11 @@ class AuthZero(object):
         clients = []
         while totals > done:
             ret = self._request("/api/v2/clients?"
-                          "&per_page={per_page}"
-                          "&page={page}&include_totals=true"
-                          "".format(page=page, per_page=per_page),
-                          "GET",
-                          payload_json)
+                                "&per_page={per_page}"
+                                "&page={page}&include_totals=true"
+                                "".format(page=page, per_page=per_page),
+                                "GET",
+                                payload_json)
             clients += ret['clients']
             done = done + per_page
             page = page + 1
@@ -198,14 +198,12 @@ class AuthZero(object):
         """
         return self._request("/api/v2/clients/{}".format(client_id), "DELETE")
 
-
     def get_users(self, fields="username,user_id,name,email,identities,groups", query_filter=""):
         """
         Returns a list of users from the Auth0 API.
         query_filter: string
         returns: JSON dict of the list of users
         """
-
         payload = DotDict(dict())
         payload_json = json.dumps(payload)
         page = 0
@@ -215,10 +213,10 @@ class AuthZero(object):
         users = []
         while totals > done:
             ret = self._request("/api/v2/users?fields={fields}&"
-                          "search_engine=v2&q={query_filter}&per_page={per_page}"
-                          "&page={page}&include_totals=true"
-                          "".format(fields=fields, query_filter=query_filter, page=page, per_page=per_page),
-                          payload_json)
+                                "search_engine=v2&q={query_filter}&per_page={per_page}"
+                                "&page={page}&include_totals=true"
+                                "".format(fields=fields, query_filter=query_filter, page=page, per_page=per_page),
+                                payload_json)
             users += ret['users']
             done = done + per_page
             page = page + 1
@@ -319,8 +317,6 @@ class AuthZero(object):
     def _check_http_response(self, response):
         """Check that we got a 2XX response from the server, else bail out"""
         if (response.status >= 300) or (response.status < 200):
-            self.logger.debug("_check_http_response() HTTP communication failed: {} {}".format(
-                response.status, response.reason, response.read()
-                )
-            )
+            self.logger.debug("_check_http_response() HTTP communication failed: {} {}"
+                              .format(response.status, response.reason, response.read()))
             raise Exception('HTTPCommunicationFailed', (response.status, response.reason))

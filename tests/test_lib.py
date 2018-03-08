@@ -3,10 +3,10 @@
 import json
 import unittest
 import os
-import sys
 
 from unittest.mock import patch
 from authzero import AuthZero
+
 
 class AuthZeroLibTest(unittest.TestCase):
     def setUp(self):
@@ -26,6 +26,6 @@ class AuthZeroLibTest(unittest.TestCase):
         assert(isinstance(ret, list))
         assert(len(ret)) == 2
         assert(isinstance(ret[0], dict))
-        assert(ret[0].get('id') != None)
-        assert(ret[0].get('script') != None)
-        assert(ret[0].get('enabled') == True)
+        assert(ret[0].get('id') is not None)
+        assert(ret[0].get('script') is not None)
+        assert(ret[0].get('enabled') is True)
