@@ -23,7 +23,7 @@ def test_suite():
 setup(
     name="authzerolib",
     py_modules=['authzerolib'],
-    version="1.0.0",
+    version="1.0.1",
     author="Guillaume Destuynder",
     author_email="gdestuynder@mozilla.com",
     description=("A super simple and basic client lib for Auth0"),
