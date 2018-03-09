@@ -3,7 +3,7 @@ all:
 	@grep '^[^#[:space:]].*:' Makefile
 
 upload: dist
-	python setup.py check upload --sign
+	python setup.py sdist check upload --sign
 
 test:
 	tox
