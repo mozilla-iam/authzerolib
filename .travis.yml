@@ -3,8 +3,7 @@ python:
     - 3.6
 before_install:
     - make install_test_requirements
-    - make test
 install:
     - make install
 script:
-    - tox
+    - make test

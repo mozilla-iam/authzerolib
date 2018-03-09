@@ -6,8 +6,7 @@ upload: dist
 	python setup.py check upload --sign
 
 test:
-	flake8 . --exclude=venv/*
-	python -m unittest discover tests
+	tox
 
 dist: build
 	python setup.py sdist
