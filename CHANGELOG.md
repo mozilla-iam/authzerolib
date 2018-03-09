@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## 1.0.2 2018-03-08
+## Changed
+- Test support removed from setup.py (supports auto test discovery)
+- Fixed makefile targets to be consistent and make travis use them
+
+## 1.0.1  2018-03-08
 ### Added
 - Support for create,update,delete,get clients in Auth0 library
 - Basic tests cases
