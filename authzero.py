@@ -180,9 +180,121 @@ class AuthZero(object):
         Auth0 API endpoint: PATH /api/v2/clients
         Auth0 API parameters: id (required), body (required)
         """
-        client.pop('tenant')
-        client.pop('global')
-        payload_json = json.dumps(client)
+        # We accept clients ready by Auth0's API (GET) but updates (PATCH) use a DIFFERENT format.
+        # This means we need to CONVERT GET'd clients so that they will be accepted for PATCH'ing.
+        # That's quite annoying, by the way. Why?! :-(
+        # See also https://auth0.com/docs/api/management/v2#!/Clients/patch_clients_by_id
+
+        patch_api_schema = """
+        {
+          "name": "",
+          "description": "",
+          "client_secret": "",
+          "logo_uri": "",
+          "callbacks": [
+            ""
+          ],
+          "allowed_origins": [
+            ""
+          ],
+          "web_origins": [
+            ""
+          ],
+          "grant_types": [
+            ""
+          ],
+          "client_aliases": [
+            ""
+          ],
+          "allowed_clients": [
+            ""
+          ],
+          "allowed_logout_urls": [
+            ""
+          ],
+          "jwt_configuration": {
+            "lifetime_in_seconds": 0,
+            "scopes": {},
+            "alg": ""
+          },
+          "encryption_key": {
+            "pub": "",
+            "cert": "",
+            "subject": ""
+          },
+          "sso": false,
+          "cross_origin_auth": false,
+          "cross_origin_loc": "",
+          "sso_disabled": false,
+          "custom_login_page_on": false,
+          "token_endpoint_auth_method": "",
+          "app_type": "",
+          "oidc_conformant": false,
+          "custom_login_page": "",
+          "custom_login_page_preview": "",
+          "form_template": "",
+          "addons": {
+            "aws": {},
+            "azure_blob": {},
+            "azure_sb": {},
+            "rms": {},
+            "mscrm": {},
+            "slack": {},
+            "sentry": {},
+            "box": {},
+            "cloudbees": {},
+            "concur": {},
+            "dropbox": {},
+            "echosign": {},
+            "egnyte": {},
+            "firebase": {},
+            "newrelic": {},
+            "office365": {},
+            "salesforce": {},
+            "salesforce_api": {},
+            "salesforce_sandbox_api": {},
+            "samlp": {},
+            "layer": {},
+            "sap_api": {},
+            "sharepoint": {},
+            "springcm": {},
+            "wams": {},
+            "wsfed": {},
+            "zendesk": {},
+            "zoom": {}
+          },
+          "client_metadata": {},
+          "mobile": {
+            "android": {
+              "app_package_name": "",
+              "sha256_cert_fingerprints": [
+              ]
+            },
+            "ios": {
+              "team_id": "",
+              "app_bundle_identifier": ""
+            }
+          }
+        }
+        """
+
+        patch_api_dict = json.loads(patch_api_schema)
+        payload = {}
+        for i in patch_api_dict:
+            val = client.get(i)
+            if (val is not None):
+                # Sub structure! we just check one level deep
+                if isinstance(val, dict) and len(patch_api_dict[i]) > 0:
+                    for y in patch_api_dict[i]:
+                        payload[i] = {}
+                        try:
+                            payload[i][y] = val[y]
+                        except KeyError:
+                            pass #don't have this, then ignore it
+                else:
+                    payload[i] = val
+
+        payload_json = json.dumps(payload)
         return self._request("/api/v2/clients/{}".format(client_id),
                              "PATCH",
                              payload_json)
