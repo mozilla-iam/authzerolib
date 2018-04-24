@@ -6,9 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## 1.0.3 2018-04-23
+## 1.0.4 2018-04-23
 ## Changed
 - Fixed get_users() and get_user()
+
+## 1.0.3 2018-03-31
+## Changed
+- Added support for creating auth0 clients
 
 ## 1.0.2 2018-03-08
 ## Changed
