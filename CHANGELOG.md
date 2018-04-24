@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Changed
 - Test support removed from setup.py (supports auto test discovery)
 - Fixed makefile targets to be consistent and make travis use them
+- Fixed get_users() and get_user()
 
 ## 1.0.1  2018-03-08
 ### Added

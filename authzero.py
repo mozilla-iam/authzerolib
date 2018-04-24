@@ -328,13 +328,13 @@ class AuthZero(object):
                                 "search_engine=v2&q={query_filter}&per_page={per_page}"
                                 "&page={page}&include_totals=true"
                                 "".format(fields=fields, query_filter=query_filter, page=page, per_page=per_page),
+                                "GET",
                                 payload_json)
             users += ret['users']
             done = done + per_page
             page = page + 1
             totals = ret['total']
             logging.debug("Got {} users out of {} - current page {}".format(done, totals, page))
-            print("Got {} users out of {} - current page {}".format(done, totals, page))
         return users
 
     def get_logs(self):
@@ -349,6 +349,7 @@ class AuthZero(object):
         payload = DotDict(dict())
         payload_json = json.dumps(payload)
         return self._request("/api/v2/users/{}".format(user_id),
+                             "GET",
                              payload_json)
 
     def update_user(self, user_id, new_profile):
