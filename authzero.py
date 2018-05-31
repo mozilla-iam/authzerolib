@@ -338,7 +338,7 @@ class AuthZero(object):
         return users
 
     def get_logs(self):
-        return self._request("https://auth-dev.mozilla.auth0.com/api/v2/logs")
+        return self._request("/api/v2/logs")
 
     def get_user(self, user_id):
         """Return user from the Auth0 API.
