@@ -16,7 +16,7 @@ def read(fname):
 setup(
     name="authzerolib",
     py_modules=['authzero'],
-    version="1.0.4",
+    version="1.0.5",
     author="Guillaume Destuynder",
     author_email="gdestuynder@mozilla.com",
     description=("A super simple and basic client lib for Auth0"),
