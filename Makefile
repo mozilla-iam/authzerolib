@@ -5,6 +5,7 @@ all:
 upload: dist
 	python setup.py sdist check upload --sign
 
+tests: test
 test:
 	tox
 

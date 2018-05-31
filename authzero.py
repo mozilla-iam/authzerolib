@@ -68,6 +68,8 @@ class AuthZero(object):
         self.access_token = None
         self.access_token_scope = None
         self.access_token_valid_until = 0
+        self.access_token_auto_renew = False
+        self.access_token_auto_renew_leeway = 60
         self.conn = http.client.HTTPSConnection(config.uri)
         self.rules = []
 
@@ -338,7 +340,7 @@ class AuthZero(object):
         return users
 
     def get_logs(self):
-        return self._request("https://auth-dev.mozilla.auth0.com/api/v2/logs")
+        return self._request("/api/v2/logs")
 
     def get_user(self, user_id):
         """Return user from the Auth0 API.
@@ -418,7 +420,10 @@ class AuthZero(object):
     def _authorize(self, headers):
         if not self.access_token:
             raise Exception('InvalidAccessToken')
-        if self.access_token_valid_until < time.time():
+        if self.access_token_auto_renew:
+            if self.access_token_valid_until < time.time() + self.access_token_auto_renew_leeway:
+                self.access_token = self.get_access_token()
+        elif self.access_token_valid_until < time.time():
             raise Exception('InvalidAccessToken', 'The access token has expired')
 
         local_headers = {}

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 1.0.5 2018-05-31
+## Changed
+- Fixed get_logs()
+- Slightly less empty README and doc
+
+## Added
+- Support for automatically renewing access_token
+
 ## 1.0.4 2018-04-23
 ## Changed
 - Fixed get_users() and get_user()
