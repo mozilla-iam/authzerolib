@@ -414,7 +414,7 @@ class AuthZero(object):
     def _handle_response(self):
         res = self.conn.getresponse()
         self._check_http_response(res)
-        ret = json.loads(res.read())
+        ret = json.loads(res.read().decode('utf-8'))
         return ret
 
     def _authorize(self, headers):
@@ -436,5 +436,5 @@ class AuthZero(object):
         """Check that we got a 2XX response from the server, else bail out"""
         if (response.status >= 300) or (response.status < 200):
             self.logger.debug("_check_http_response() HTTP communication failed: {} {}"
-                              .format(response.status, response.reason, response.read()))
+                              .format(response.status, response.reason, response.read().decode('utf-8')))
             raise Exception('HTTPCommunicationFailed', (response.status, response.reason))
