@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## 1.0.6 2018-06-06
+## Changed
+- Support for python 3+ but also < 3.6
+
 ## 1.0.5 2018-05-31
 ## Changed
 - Fixed get_logs()
