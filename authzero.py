@@ -397,7 +397,7 @@ class AuthZero(object):
             result = requests.request(rtype, url, json=payload, headers=self.default_headers)
         try:
             if not result.ok:
-                return False
+                raise Exception('HTTPCommunicationFailed', (result.status_code, result.reason))
             return result.json()
         except ValueError:
             return result.content
