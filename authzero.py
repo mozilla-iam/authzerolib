@@ -3,10 +3,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# Copyright (c) 2017 Mozilla Corporation
-# Contributors: Guillaume Destuynder <kang@mozilla.com>
+# Copyright (c) 2021 Mozilla Corporation
+# Contributors: Guillaume Destuynder <kang@mozilla.com>, Gene Wood <gene@mozilla.com>
 
-import http.client
+import requests
 import json
 import logging
 import time
@@ -70,14 +70,12 @@ class AuthZero(object):
         self.access_token_valid_until = 0
         self.access_token_auto_renew = False
         self.access_token_auto_renew_leeway = 60
-        self.conn = http.client.HTTPSConnection(config.uri)
         self.rules = []
 
         self.logger = logging.getLogger('AuthZero')
 
     def __del__(self):
         self.client_secret = None
-        self.conn.close()
 
     def get_rules(self):
         return self._request("/api/v2/rules")
@@ -88,7 +86,7 @@ class AuthZero(object):
         rule: AuthZeroRule object
 
         Deletes an Auth0 rule
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/rules
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Rules/delete_rules_by_id
         Auth0 API endpoint: PATH /api/v2/rules/{id}
         Auth0 API parameters: id (rule_id, required)
         """
@@ -100,7 +98,7 @@ class AuthZero(object):
         rule: AuthZeroRule object
 
         Creates an Auth0 rule
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/rules
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Rules/post_rules
         Auth0 API endpoint: PATH /api/v2/rules
         Auth0 API parameters: body (required)
         """
@@ -109,8 +107,7 @@ class AuthZero(object):
         payload.name = rule.name
         payload.order = rule.order
         payload.enabled = rule.enabled
-        payload_json = json.dumps(payload)
-        return self._request("/api/v2/rules", "POST", payload_json)
+        return self._request("/api/v2/rules", "POST", payload)
 
     def update_rule(self, rule_id, rule):
         """
@@ -118,7 +115,7 @@ class AuthZero(object):
         rule: AuthZeroRule object
 
         Updates an Auth0 rule
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/rules
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Rules/patch_rules_by_id
         Auth0 API endpoint: PATH /api/v2/rules/{id}
         Auth0 API parameters: id (rule_id, required), body (required)
         """
@@ -128,19 +125,16 @@ class AuthZero(object):
         payload.name = rule.name
         payload.order = rule.order
         payload.enabled = rule.enabled
-        payload_json = json.dumps(payload)
-        return self._request("/api/v2/rules/{}".format(rule_id), "PATCH", payload_json)
+        return self._request("/api/v2/rules/{}".format(rule_id), "PATCH", payload)
 
     def get_clients(self):
         """
         Get list of Auth0 clients
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/clients
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Clients/get_clients
         Auth0 API endpoint: PATH /api/v2/clients
         Auth0 API parameters: fields (optional), ...
         """
 
-        payload = DotDict(dict())
-        payload_json = json.dumps(payload)
         page = 0
         per_page = 100
         totals = 0
@@ -151,8 +145,7 @@ class AuthZero(object):
                                 "&per_page={per_page}"
                                 "&page={page}&include_totals=true"
                                 "".format(page=page, per_page=per_page),
-                                "GET",
-                                payload_json)
+                                "GET")
             clients += ret['clients']
             done = done + per_page
             page = page + 1
@@ -165,12 +158,11 @@ class AuthZero(object):
         client: client object (dict)
 
         Create an Auth0 client
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/clients
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Clients/post_clients
         Auth0 API endpoint: PATH /api/v2/clients
         Auth0 API parameters: body (required)
         """
-        payload_json = json.dumps(client)
-        return self._request("/api/v2/clients", "POST", payload_json)
+        return self._request("/api/v2/clients", "POST", client)
 
     def update_client(self, client_id, client):
         """
@@ -178,14 +170,13 @@ class AuthZero(object):
         client: client object (dict)
 
         Update an Auth0 client
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/clients
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Clients/patch_clients_by_id
         Auth0 API endpoint: PATH /api/v2/clients
         Auth0 API parameters: id (required), body (required)
         """
         # We accept clients ready by Auth0's API (GET) but updates (PATCH) use a DIFFERENT format.
         # This means we need to CONVERT GET'd clients so that they will be accepted for PATCH'ing.
         # That's quite annoying, by the way. Why?! :-(
-        # See also https://auth0.com/docs/api/management/v2#!/Clients/patch_clients_by_id
 
         patch_api_schema = """
         {
@@ -296,17 +287,16 @@ class AuthZero(object):
                 else:
                     payload[i] = val
 
-        payload_json = json.dumps(payload)
         return self._request("/api/v2/clients/{}".format(client_id),
                              "PATCH",
-                             payload_json)
+                             payload)
 
     def delete_client(self, client_id):
         """
         client_id: client id (string)
 
         Delete an Auth0 client
-        Auth0 API doc: https://auth0.com/docs/api/management/v2#!/clients
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Clients/delete_clients_by_id
         Auth0 API endpoint: PATH /api/v2/clients
         Auth0 API parameters: id (required), body (required)
         """
@@ -315,11 +305,12 @@ class AuthZero(object):
     def get_users(self, fields="username,user_id,name,email,identities,groups", query_filter=""):
         """
         Returns a list of users from the Auth0 API.
+
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Users/get_users
+
         query_filter: string
         returns: JSON dict of the list of users
         """
-        payload = DotDict(dict())
-        payload_json = json.dumps(payload)
         page = 0
         per_page = 100
         totals = 0
@@ -330,8 +321,7 @@ class AuthZero(object):
                                 "search_engine=v2&q={query_filter}&per_page={per_page}"
                                 "&page={page}&include_totals=true"
                                 "".format(fields=fields, query_filter=query_filter, page=page, per_page=per_page),
-                                "GET",
-                                payload_json)
+                                "GET")
             users += ret['users']
             done = done + per_page
             page = page + 1
@@ -344,15 +334,12 @@ class AuthZero(object):
 
     def get_user(self, user_id):
         """Return user from the Auth0 API.
+
+        Auth0 API doc: https://auth0.com/docs/api/management/v2/#!/Users/get_users_by_id
         user_id: string
         returns: JSON dict of the user profile
         """
-
-        payload = DotDict(dict())
-        payload_json = json.dumps(payload)
-        return self._request("/api/v2/users/{}".format(user_id),
-                             "GET",
-                             payload_json)
+        return self._request("/api/v2/users/{}".format(user_id), "GET")
 
     def update_user(self, user_id, new_profile):
         """
@@ -372,12 +359,9 @@ class AuthZero(object):
         if 'user_id' in new_profile.keys():
             del new_profile['user_id']
         payload.app_metadata = new_profile
-        # This validates the JSON as well
-        payload_json = json.dumps(payload)
-
         return self._request("/api/v2/users/{}".format(user_id),
                              "PATCH",
-                             payload_json)
+                             payload)
 
     def get_access_token(self):
         """
@@ -389,9 +373,8 @@ class AuthZero(object):
         payload.client_secret = self.client_secret
         payload.audience = "https://{}/api/v2/".format(self.uri)
         payload.grant_type = "client_credentials"
-        payload_json = json.dumps(payload)
 
-        ret = self._request("/oauth/token", "POST", payload_json, authorize=False)
+        ret = self._request("/oauth/token", "POST", payload, authorize=False)
 
         access_token = DotDict(ret)
         # Validation
@@ -402,20 +385,22 @@ class AuthZero(object):
         self.access_token_scope = access_token.scope
         return access_token
 
-    def _request(self, rpath, rtype="GET", payload_json={}, authorize=True):
+    def _request(self, rpath, rtype="GET", payload=None, authorize=True):
+        if payload is None:
+            payload = {}
         self.logger.debug('Sending Auth0 request {} {}'.format(rtype, rpath))
+        url = 'https://{}{}'.format(self.uri, rpath)
         if authorize:
-            self.conn.request(rtype, rpath, payload_json, self._authorize(self.default_headers))
+            result = requests.request(rtype, url, json=payload, headers=self._authorize(self.default_headers))
         else:
             # Public req w/o oauth header
-            self.conn.request(rtype, rpath, payload_json, self.default_headers)
-        return self._handle_response()
-
-    def _handle_response(self):
-        res = self.conn.getresponse()
-        self._check_http_response(res)
-        ret = json.loads(res.read().decode('utf-8'))
-        return ret
+            result = requests.request(rtype, url, json=payload, headers=self.default_headers)
+        try:
+            if not result.ok:
+                raise Exception('HTTPCommunicationFailed', (result.status_code, result.reason))
+            return result.json()
+        except ValueError:
+            return result.content
 
     def _authorize(self, headers):
         if not self.access_token:
@@ -431,10 +416,3 @@ class AuthZero(object):
         local_headers['Authorization'] = 'Bearer {}'.format(self.access_token)
 
         return local_headers
-
-    def _check_http_response(self, response):
-        """Check that we got a 2XX response from the server, else bail out"""
-        if (response.status >= 300) or (response.status < 200):
-            self.logger.debug("_check_http_response() HTTP communication failed: {} {}"
-                              .format(response.status, response.reason, response.read().decode('utf-8')))
-            raise Exception('HTTPCommunicationFailed', (response.status, response.reason))
