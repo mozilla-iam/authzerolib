@@ -19,6 +19,8 @@ setup(
     author="Mozilla IAM",
     author_email="gene@mozilla.com",
     description=("A super simple and basic client lib for Auth0"),
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     license="MPL-2.0",
     keywords="auth0 iam library",
     url="https://github.com/mozilla-iam/authzerolib",
