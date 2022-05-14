@@ -1,6 +1,0 @@
-{
-  "access_token": "eyJ0eXAitesttokentesttoken",
-  "token_type": "Bearer",
-  "expires_in": 1337,
-  "scope": "read:fake"
-}
